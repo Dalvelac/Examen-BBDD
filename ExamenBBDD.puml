@@ -1,0 +1,141 @@
+@startuml
+hide circle
+skinparam classAttributeIconSize 0
+
+class Faccion {
+  +id_faccion : int <<PK>>
+  +nombre : string
+  +descripcion : string
+}
+
+class Jugador {
+  +id_jugador : int <<PK>>
+  +nombre : string
+}
+
+class Ejercito {
+  +id_ejercito : int <<PK>>
+  +nombre : string
+  +codigo : string <<UNIQUE>>
+  +max_puntos : int
+}
+
+class Unidad {
+  +id_unidad : int <<PK>>
+  +nombre : string
+  +descripcion : string
+  +min_miniaturas : int
+  +max_miniaturas : int
+}
+
+class UnidadEjercito {
+  +id_unidad_ejercito : int <<PK>>
+}
+
+class TipoMiniatura {
+  +id_tipo_miniatura : int <<PK>>
+  +nombre : string
+  +coste : int
+  +num_equipamiento : int
+  +F : int
+  +T : int
+  +W : int
+  +A : int
+  +L : int
+}
+
+class MiniaturaUnidad {
+  +id_miniatura_unidad : int <<PK>>
+}
+
+class Equipamiento {
+  +id_equipamiento : int <<PK>>
+  +nombre : string
+  +descripcion : string
+  +coste : int
+}
+
+class ArmaCuerpoACuerpo {
+  +fuerza : int
+  +iniciativa : int
+}
+
+class ArmaDistancia {
+  +fuerza : int
+  +AP : int
+  +alcance : int
+}
+
+class Consumible {
+  +num_usos : int
+}
+
+' relaciones principales
+
+Faccion "0..*" -- "0..*" Faccion : aliada_con
+
+Jugador "1" -- "0..*" Ejercito : pertenece_a
+Faccion "1" -- "0..*" Ejercito : usa_faccion
+Faccion "1" -- "0..*" Unidad : tiene_unidades
+
+Ejercito "1" -- "1..*" UnidadEjercito : contiene
+Unidad "1" -- "0..*" UnidadEjercito : instancia_de
+
+Unidad "0..*" -- "0..*" TipoMiniatura : composicion_posible
+
+UnidadEjercito "1" -- "1..*" MiniaturaUnidad : contiene
+TipoMiniatura "1" -- "0..*" MiniaturaUnidad : es_de_tipo
+
+TipoMiniatura "0..*" -- "0..*" Equipamiento : equipamiento_disponible
+MiniaturaUnidad "0..*" -- "0..*" Equipamiento : equipamiento_actual
+
+
+' especializacion de equipamiento
+
+Equipamiento <|-- ArmaCuerpoACuerpo
+Equipamiento <|-- ArmaDistancia
+Equipamiento <|-- Consumible
+
+
+' notas y restricciones
+
+
+note right of Equipamiento
+  Especialización {overlapping, incomplete}:
+  un mismo equipamiento puede pertenecer
+  a varias categorías a la vez.
+end note
+
+note right of TipoMiniatura
+  Se separa TipoMiniatura de MiniaturaUnidad para poder guardar:
+  1) las posibilidades de composición de una Unidad
+  2) la lista actual de miniaturas de cada UnidadEjercito
+end note
+
+note bottom of Unidad
+  La relación composicion_posible es N:M:
+  una Unidad puede admitir varios TiposMiniatura
+  y un mismo TipoMiniatura puede aparecer
+  en varias Unidades.
+end note
+
+note right of MiniaturaUnidad
+  Restricción:
+  el equipamiento_actual de una MiniaturaUnidad
+  debe pertenecer al equipamiento_disponible
+  de su TipoMiniatura
+end note
+
+note right of UnidadEjercito
+  Restricción:
+  la Unidad seleccionada para el Ejército
+  debe pertenecer a la misma Facción del Ejército
+end note
+
+note top of Faccion
+  Restricción semántica:
+  si una Facción A es aliada de B,
+  normalmente B también lo es de A.
+end note
+
+@enduml
